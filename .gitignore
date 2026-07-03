@@ -1,0 +1,9 @@
+# Backend
+property-network-backend/.env
+property-network-backend/node_modules/
+
+# Frontend
+property-network-frontend/node_modules/
+
+# Logs
+*.log
