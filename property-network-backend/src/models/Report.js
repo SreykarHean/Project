@@ -31,6 +31,10 @@ const Report = sequelize.define('Report', {
         type: DataTypes.INTEGER,
         allowNull: true,
     },
+    agent_response: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    },
 },{
     tableName: 'reports',
     timestamps: true,

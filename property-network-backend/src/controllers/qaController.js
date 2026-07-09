@@ -36,4 +36,22 @@ const markHelpful = async (req, res, next) => {
   }
 }
 
-module.exports = { createQuestion, getQuestionsByListing, createAnswer, markHelpful }
+const deleteQuestion = async (req, res, next) => {
+  try {
+    await qaService.deleteQuestion(req.user.id, req.params.question_id)
+    res.json({ success: true, message: 'Question deleted' })
+  } catch (err) {
+    next(err)
+  }
+}
+
+const deleteAnswer = async (req, res, next) => {
+  try {
+    await qaService.deleteAnswer(req.user.id, req.params.answer_id)
+    res.json({ success: true, message: 'Answer deleted' })
+  } catch (err) {
+    next(err)
+  }
+}
+
+module.exports = { createQuestion, getQuestionsByListing, createAnswer, markHelpful, deleteQuestion, deleteAnswer }

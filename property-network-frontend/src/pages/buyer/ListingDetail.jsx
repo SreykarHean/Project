@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import api from '../../services/api'
+import { useAuth } from '../../hooks/useAuth'
 
 const ListingDetail = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [listing, setListing] = useState(null)
   const [questions, setQuestions] = useState([])
   const [newQuestion, setNewQuestion] = useState('')
@@ -14,6 +16,11 @@ const ListingDetail = () => {
   const [bookingDate, setBookingDate] = useState('')
   const [bookingNote, setBookingNote] = useState('')
   const [bookingMsg, setBookingMsg] = useState('')
+  const [showReportForm, setShowReportForm] = useState(false)
+  const [reportType, setReportType] = useState('Fake listing')
+  const [reportReason, setReportReason] = useState('')
+  const [reportMsg, setReportMsg] = useState('')
+  const [reportSubmitted, setReportSubmitted] = useState(false)
 
   useEffect(() => {
     Promise.all([
@@ -64,6 +71,32 @@ const ListingDetail = () => {
       setQuestions(res.data.data)
     } catch (err) {
       console.error(err)
+    }
+  }
+
+  const handleDeleteQuestion = async (questionId) => {
+    if (!confirm('Delete this question? Any answers to it will be removed too.')) return
+    try {
+      await api.delete(`/qa/${questionId}`)
+      setQuestions(prev => prev.filter(q => q.question_id !== questionId))
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const handleReportSubmit = async (e) => {
+    e.preventDefault()
+    try {
+      await api.post('/reports', {
+        report_type: reportType,
+        reason: reportReason,
+        listing_id: parseInt(id)
+      })
+      setReportMsg('Report submitted. Our team will review it.')
+      setReportSubmitted(true)
+      setReportReason('')
+    } catch (err) {
+      setReportMsg('Failed to submit report. Please try again.')
     }
   }
 
@@ -147,10 +180,54 @@ const ListingDetail = () => {
 
         {/* Save button */}
         <button onClick={handleSave} disabled={saved} style={{
-          marginTop: '20px', padding: '10px 24px',
+          marginTop: '20px', padding: '10px 24px', marginRight: '12px',
           background: saved ? '#d1fae5' : '#1a56db', color: saved ? '#065f46' : '#fff',
           border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer'
         }}>{saved ? '✓ Saved' : 'Save Listing'}</button>
+
+        {/* Report listing */}
+        {!reportSubmitted && (
+          <button onClick={() => setShowReportForm(v => !v)} style={{
+            marginTop: '20px', padding: '10px 24px',
+            background: '#fff', color: '#b91c1c', border: '1px solid #fca5a5',
+            borderRadius: '6px', fontWeight: '600', cursor: 'pointer'
+          }}>⚑ Report Listing</button>
+        )}
+
+        {showReportForm && !reportSubmitted && (
+          <form onSubmit={handleReportSubmit} style={{
+            marginTop: '16px', padding: '16px', background: '#fef2f2',
+            border: '1px solid #fca5a5', borderRadius: '8px'
+          }}>
+            <label style={{ display: 'block', fontSize: '13px', color: '#6b7280', marginBottom: '6px' }}>Reason type</label>
+            <select value={reportType} onChange={e => setReportType(e.target.value)} style={{
+              width: '100%', padding: '10px', border: '1px solid #e5e7eb',
+              borderRadius: '6px', fontSize: '15px', marginBottom: '12px'
+            }}>
+              <option>Fake listing</option>
+              <option>Misleading information</option>
+              <option>Inappropriate content</option>
+              <option>Scam / fraud attempt</option>
+              <option>Other</option>
+            </select>
+            <label style={{ display: 'block', fontSize: '13px', color: '#6b7280', marginBottom: '6px' }}>Details</label>
+            <textarea value={reportReason} onChange={e => setReportReason(e.target.value)}
+              placeholder="Describe the issue..." rows={3} required style={{
+                width: '100%', padding: '10px', border: '1px solid #e5e7eb',
+                borderRadius: '6px', fontSize: '15px', marginBottom: '12px', resize: 'vertical'
+              }} />
+            <button type="submit" style={{
+              padding: '9px 20px', background: '#b91c1c', color: '#fff',
+              border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer'
+            }}>Submit Report</button>
+          </form>
+        )}
+
+        {reportMsg && (
+          <p style={{ marginTop: '12px', color: reportSubmitted ? '#065f46' : '#991b1b', fontSize: '14px' }}>
+            {reportMsg}
+          </p>
+        )}
       </div>
 
       {/* Book Appointment */}
@@ -213,9 +290,17 @@ const ListingDetail = () => {
               border: '1px solid #e5e7eb', borderRadius: '8px',
               padding: '16px', marginBottom: '12px'
             }}>
-              <p style={{ fontWeight: '600', marginBottom: '4px' }}>
-                {q.is_anonymous ? 'Anonymous' : q.Buyer?.full_name}
-              </p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <p style={{ fontWeight: '600', marginBottom: '4px' }}>
+                  {q.is_anonymous ? 'Anonymous' : q.Buyer?.full_name}
+                </p>
+                {q.buyer_id === user?.id && (
+                  <button onClick={() => handleDeleteQuestion(q.question_id)} style={{
+                    background: 'none', border: 'none', color: '#b91c1c',
+                    fontSize: '13px', fontWeight: '600', cursor: 'pointer', padding: 0
+                  }}>Delete</button>
+                )}
+              </div>
               <p style={{ marginBottom: '10px' }}>{q.body}</p>
               {q.tag && (
                 <span style={{

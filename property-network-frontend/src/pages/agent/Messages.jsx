@@ -264,11 +264,11 @@ const Messages = () => {
                               borderRadius: '14px', padding: '12px 14px'
                             }}>
                               <p style={{ fontWeight: '600', fontSize: '13.5px', marginBottom: '4px' }}><FontAwesomeIcon icon={faLocationDot} /> {m.location_label || 'Shared Location'}</p>
-                              
+                              <a
                                 href={`https://www.google.com/maps?q=${m.location_lat},${m.location_lng}`}
                                 target="_blank" rel="noopener noreferrer"
                                 style={{ fontSize: '12.5px', color: isMine ? '#dbeafe' : '#1a56db', textDecoration: 'underline' }}
-                              <a>Open in Google Maps</a>
+                              >Open in Google Maps</a>
                             </div>
                           ) : (
                             <div style={{

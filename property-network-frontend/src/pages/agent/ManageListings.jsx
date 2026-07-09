@@ -59,6 +59,10 @@ const ManageListings = () => {
                   background: l.status === 'available' ? '#d1fae5' : '#fef3c7',
                   color: l.status === 'available' ? '#065f46' : '#92400e'
                 }}>{l.status}</span>
+                <button onClick={() => navigate(`/agent/listings/${l.listing_id}`)} style={{
+                  padding: '8px 16px', background: '#eff6ff', color: '#1a56db',
+                  border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '600'
+                }}>View</button>
                 <button onClick={() => navigate(`/agent/listings/edit/${l.listing_id}`)} style={{
                   padding: '8px 16px', background: '#f3f4f6', color: '#374151',
                   border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '600'

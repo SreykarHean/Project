@@ -4,6 +4,7 @@ import api from '../../services/api'
 const ManageReports = () => {
   const [reports, setReports] = useState([])
   const [loading, setLoading] = useState(true)
+  const [notifyAgentMap, setNotifyAgentMap] = useState({})
 
   useEffect(() => {
     api.get('/reports')
@@ -14,11 +15,16 @@ const ManageReports = () => {
 
   const handleUpdate = async (id, status) => {
     try {
-      await api.patch(`/reports/${id}`, { status })
+      const notifyAgent = !!notifyAgentMap[id]
+      await api.patch(`/reports/${id}`, { status, notifyAgent })
       setReports(reports.map(r => r.report_id === id ? { ...r, status } : r))
     } catch (err) {
       console.error(err)
     }
+  }
+
+  const toggleNotifyAgent = (id) => {
+    setNotifyAgentMap(prev => ({ ...prev, [id]: !prev[id] }))
   }
 
   const statusColor = (status) => {
@@ -48,6 +54,14 @@ const ManageReports = () => {
                     By: {r.Buyer?.full_name} · Listing: {r.Listing?.title}
                   </p>
                   <p style={{ fontSize: '14px', marginTop: '8px' }}>{r.reason}</p>
+                  {r.agent_response && (
+                    <div style={{
+                      marginTop: '10px', paddingLeft: '12px', borderLeft: '3px solid #1a56db'
+                    }}>
+                      <p style={{ fontSize: '12px', fontWeight: '600', color: '#1a56db', marginBottom: '2px' }}>Agent's response</p>
+                      <p style={{ fontSize: '14px' }}>{r.agent_response}</p>
+                    </div>
+                  )}
                 </div>
                 <span style={{
                   padding: '4px 12px', borderRadius: '20px', fontSize: '13px',
@@ -56,16 +70,28 @@ const ManageReports = () => {
                   color: statusColor(r.status).text
                 }}>{r.status}</span>
               </div>
-              {r.status === 'pending' && (
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button onClick={() => handleUpdate(r.report_id, 'reviewed')} style={{
-                    padding: '7px 16px', background: '#dbeafe', color: '#1e40af',
-                    border: 'none', borderRadius: '6px', fontSize: '13px', fontWeight: '600'
-                  }}>Mark Reviewed</button>
-                  <button onClick={() => handleUpdate(r.report_id, 'resolved')} style={{
-                    padding: '7px 16px', background: '#d1fae5', color: '#065f46',
-                    border: 'none', borderRadius: '6px', fontSize: '13px', fontWeight: '600'
-                  }}>Mark Resolved</button>
+              {r.status !== 'resolved' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#374151' }}>
+                    <input
+                      type="checkbox"
+                      checked={!!notifyAgentMap[r.report_id]}
+                      onChange={() => toggleNotifyAgent(r.report_id)}
+                    />
+                    Notify agent about this report
+                  </label>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    {r.status === 'pending' && (
+                      <button onClick={() => handleUpdate(r.report_id, 'reviewed')} style={{
+                        padding: '7px 16px', background: '#dbeafe', color: '#1e40af',
+                        border: 'none', borderRadius: '6px', fontSize: '13px', fontWeight: '600'
+                      }}>Mark Reviewed</button>
+                    )}
+                    <button onClick={() => handleUpdate(r.report_id, 'resolved')} style={{
+                      padding: '7px 16px', background: '#d1fae5', color: '#065f46',
+                      border: 'none', borderRadius: '6px', fontSize: '13px', fontWeight: '600'
+                    }}>Mark Resolved</button>
+                  </div>
                 </div>
               )}
             </div>
