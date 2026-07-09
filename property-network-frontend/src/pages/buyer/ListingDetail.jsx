@@ -372,7 +372,7 @@ const ListingDetail = () => {
               }} />
             <button type="submit" disabled={!reviewComment.trim() || reviewSubmitting} style={{
               padding: '9px 20px',
-              background: reviewComment.trim() ? '#1a56db' : '#c7d2fe', color: '#fff',
+              background: reviewComment.trim() ? '#106AA3' : '#c7d2fe', color: '#fff',
               border: 'none', borderRadius: '6px', fontWeight: '600',
               cursor: reviewComment.trim() ? 'pointer' : 'default'
             }}>{reviewSubmitting ? 'Posting...' : 'Post Review'}</button>

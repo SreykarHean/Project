@@ -30,7 +30,7 @@ const Dashboard = () => {
     <div className="page">
       <h2 style={{ marginBottom: '24px' }}>Admin Dashboard</h2>
       <div className="grid-stats">
-        <StatCard label="Total Buyers" value={stats.buyers} color="#1a56db" />
+        <StatCard label="Total Buyers" value={stats.buyers} color="#106AA3" />
         <StatCard label="Total Agents" value={stats.agents} color="#7c3aed" />
         <StatCard label="Total Listings" value={stats.listings} color="#059669" />
         <StatCard label="Pending Reports" value={stats.reports} color="#dc2626" />
