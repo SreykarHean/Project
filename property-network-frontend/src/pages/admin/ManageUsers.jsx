@@ -76,7 +76,7 @@ const ManageUsers = () => {
                   color: b.status === 'active' ? '#065f46' : '#991b1b'
                 }}>{b.status}</span>
                 {b.status === 'active' ? (
-                  <button onClick={() => handleBuyerStatus(b.buyer_id, 'suspended')} style={{
+                  <button onClick={() => handleBuyerStatus(b.buyer_id, 'banned')} style={{
                     padding: '7px 14px', background: '#fee2e2', color: '#991b1b',
                     border: 'none', borderRadius: '6px', fontSize: '13px', fontWeight: '600'
                   }}>Suspend</button>

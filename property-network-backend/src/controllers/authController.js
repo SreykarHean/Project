@@ -17,6 +17,9 @@ const login = async (req, res, next) => {
     const result = await authService.login(role, email, password)
     res.json({ success: true, message: 'Login successful', data: result })
   } catch (err) {
+    if (err.message.startsWith('Your account has been suspended')) {
+      err.message = `Your account has been suspended. Contact us at ${process.env.EMAIL_USER} for assistance.`
+    }
     next(err)
   }
 }
