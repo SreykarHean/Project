@@ -64,7 +64,7 @@ const ManageUsers = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <Badge status={b.status} />
                 {b.status === 'active' ? (
-                  <button onClick={() => handleBuyerStatus(b.buyer_id, 'suspended')} className="btn btn-danger-soft btn-sm">
+                  <button onClick={() => handleBuyerStatus(b.buyer_id, 'banned')} className="btn btn-danger-soft btn-sm">
                     Suspend
                   </button>
                 ) : (

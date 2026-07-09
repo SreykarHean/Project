@@ -25,6 +25,12 @@ const ListingDetail = () => {
   const [reportReason, setReportReason] = useState('')
   const [reportMsg, setReportMsg] = useState('')
   const [reportSubmitted, setReportSubmitted] = useState(false)
+  const [reviews, setReviews] = useState([])
+  const [reviewsLoading, setReviewsLoading] = useState(true)
+  const [reviewRating, setReviewRating] = useState(5)
+  const [reviewComment, setReviewComment] = useState('')
+  const [reviewSubmitting, setReviewSubmitting] = useState(false)
+  const [reviewMsg, setReviewMsg] = useState('')
 
   useEffect(() => {
     Promise.all([
@@ -36,6 +42,14 @@ const ListingDetail = () => {
     }).catch(console.error)
       .finally(() => setLoading(false))
   }, [id])
+
+  useEffect(() => {
+    if (!listing?.agent_id) return
+    api.get(`/reviews/agent/${listing.agent_id}`)
+      .then(res => setReviews(res.data.data))
+      .catch(console.error)
+      .finally(() => setReviewsLoading(false))
+  }, [listing?.agent_id])
 
   const handleSave = async () => {
     try {
@@ -101,6 +115,39 @@ const ListingDetail = () => {
       setReportReason('')
     } catch {
       setReportMsg('Failed to submit report. Please try again.')
+    }
+  }
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault()
+    if (!listing?.agent_id || !reviewComment.trim()) return
+    setReviewSubmitting(true)
+    setReviewMsg('')
+    try {
+      await api.post('/reviews', {
+        agent_id: listing.agent_id,
+        rating: reviewRating,
+        comment: reviewComment.trim()
+      })
+      setReviewComment('')
+      setReviewRating(5)
+      const res = await api.get(`/reviews/agent/${listing.agent_id}`)
+      setReviews(res.data.data)
+      setReviewMsg('Review posted. Thanks for the feedback!')
+    } catch (err) {
+      setReviewMsg('Failed to post review. Please try again.')
+    } finally {
+      setReviewSubmitting(false)
+    }
+  }
+
+  const handleDeleteReview = async (reviewId) => {
+    if (!confirm('Delete your review?')) return
+    try {
+      await api.delete(`/reviews/${reviewId}`)
+      setReviews(prev => prev.filter(r => r.review_id !== reviewId))
+    } catch (err) {
+      console.error(err)
     }
   }
 
@@ -295,6 +342,74 @@ const ListingDetail = () => {
           ))
         )}
       </div>
+
+      {/* Agent Reviews */}
+      {listing.Agent && (
+        <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '10px', padding: '24px', marginTop: '24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h3>Reviews for {listing.Agent.full_name}</h3>
+            {reviews.length > 0 && (
+              <span style={{ fontSize: '14px', color: '#6b7280', fontWeight: '600' }}>
+                ★ {(reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)} ({reviews.length})
+              </span>
+            )}
+          </div>
+
+          <form onSubmit={handleSubmitReview} style={{ marginBottom: '24px' }}>
+            <div style={{ display: 'flex', gap: '4px', marginBottom: '10px' }}>
+              {[1, 2, 3, 4, 5].map(star => (
+                <button key={star} type="button" onClick={() => setReviewRating(star)} style={{
+                  background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                  fontSize: '22px', color: star <= reviewRating ? '#f59e0b' : '#e5e7eb'
+                }}>★</button>
+              ))}
+            </div>
+            <textarea value={reviewComment} onChange={e => setReviewComment(e.target.value)}
+              placeholder="Share your experience working with this agent..."
+              rows={3} required style={{
+                width: '100%', padding: '10px', border: '1px solid #e5e7eb',
+                borderRadius: '6px', fontSize: '15px', marginBottom: '10px', resize: 'vertical'
+              }} />
+            <button type="submit" disabled={!reviewComment.trim() || reviewSubmitting} style={{
+              padding: '9px 20px',
+              background: reviewComment.trim() ? '#1a56db' : '#c7d2fe', color: '#fff',
+              border: 'none', borderRadius: '6px', fontWeight: '600',
+              cursor: reviewComment.trim() ? 'pointer' : 'default'
+            }}>{reviewSubmitting ? 'Posting...' : 'Post Review'}</button>
+            {reviewMsg && (
+              <p style={{ marginTop: '10px', fontSize: '14px', color: reviewMsg.includes('Failed') ? '#991b1b' : '#065f46' }}>
+                {reviewMsg}
+              </p>
+            )}
+          </form>
+
+          {reviewsLoading ? (
+            <p style={{ color: '#9ca3af' }}>Loading reviews...</p>
+          ) : reviews.length === 0 ? (
+            <p style={{ color: '#6b7280' }}>No reviews yet. Be the first to review this agent!</p>
+          ) : (
+            reviews.map(r => (
+              <div key={r.review_id} style={{
+                borderTop: '1px solid #f3f4f6', paddingTop: '12px', marginTop: '12px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <p style={{ fontWeight: '600', marginBottom: '2px' }}>{r.Buyer?.full_name}</p>
+                    <p style={{ color: '#f59e0b', fontSize: '14px', marginBottom: '4px' }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</p>
+                  </div>
+                  {r.buyer_id === user?.id && (
+                    <button onClick={() => handleDeleteReview(r.review_id)} style={{
+                      background: 'none', border: 'none', color: '#b91c1c',
+                      fontSize: '13px', fontWeight: '600', cursor: 'pointer', padding: 0
+                    }}>Delete</button>
+                  )}
+                </div>
+                <p style={{ fontSize: '14px', color: '#374151' }}>{r.comment}</p>
+              </div>
+            ))
+          )}
+        </div>
+      )}
     </div>
   )
 }

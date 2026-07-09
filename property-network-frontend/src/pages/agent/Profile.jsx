@@ -17,6 +17,8 @@ const Profile = () => {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [photoUploading, setPhotoUploading] = useState(false)
+  const [reviews, setReviews] = useState([])
+  const [reviewsLoading, setReviewsLoading] = useState(true)
   const fileInputRef = useRef(null)
 
   const loadProfile = () => {
@@ -34,6 +36,10 @@ const Profile = () => {
 
   useEffect(() => {
     loadProfile().finally(() => setLoading(false))
+    api.get('/agents/reviews')
+      .then(res => setReviews(res.data.data))
+      .catch(console.error)
+      .finally(() => setReviewsLoading(false))
   }, [])
 
   const flash = (msg, isError = false) => {
@@ -226,6 +232,37 @@ const Profile = () => {
             </>
           )}
         </div>
+      </div>
+
+      {/* Reviews */}
+      <div style={{
+        background: '#fff', border: '1px solid #e5e7eb', borderRadius: '12px',
+        padding: '28px', marginTop: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h3>My Reviews</h3>
+          {reviews.length > 0 && (
+            <span style={{ fontSize: '14px', color: '#6b7280', fontWeight: '600' }}>
+              ★ {(reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)} average ({reviews.length} review{reviews.length !== 1 ? 's' : ''})
+            </span>
+          )}
+        </div>
+
+        {reviewsLoading ? (
+          <p style={{ color: '#9ca3af' }}>Loading reviews...</p>
+        ) : reviews.length === 0 ? (
+          <p style={{ color: '#6b7280' }}>No reviews yet.</p>
+        ) : (
+          reviews.map(r => (
+            <div key={r.review_id} style={{
+              borderTop: '1px solid #f3f4f6', paddingTop: '14px', marginTop: '14px'
+            }}>
+              <p style={{ fontWeight: '600', marginBottom: '2px' }}>{r.Buyer?.full_name}</p>
+              <p style={{ color: '#f59e0b', fontSize: '14px', marginBottom: '4px' }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</p>
+              <p style={{ fontSize: '14px', color: '#374151' }}>{r.comment}</p>
+            </div>
+          ))
+        )}
       </div>
     </div>
   )

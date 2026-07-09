@@ -38,6 +38,10 @@ const login = async (role, email, password) => {
   const isMatch = await bcrypt.compare(password, user.password)
   if (!isMatch) throw new Error('Invalid credentials')
 
+  if (role === 'buyer' && user.status === 'banned') {
+    throw new Error('Your account has been suspended. Contact support for assistance.')
+  }
+
   const idField = `${role}_id`
   const token = generateToken(user[idField], role)
 
