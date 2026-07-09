@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
+import { formatPrice } from '../../utils/helpers'
+import Loading from '../../components/ui/Loading'
+import EmptyState from '../../components/ui/EmptyState'
+import Badge from '../../components/ui/Badge'
 
 const ManageListings = () => {
   const [listings, setListings] = useState([])
@@ -24,53 +28,41 @@ const ManageListings = () => {
     }
   }
 
-  if (loading) return <p style={{ padding: '40px' }}>Loading...</p>
+  if (loading) return <Loading />
 
   return (
-    <div style={{ padding: '32px', maxWidth: '1100px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+    <div className="page">
+      <div className="page-header">
         <h2>My Listings</h2>
-        <button onClick={() => navigate('/agent/listings/create')} style={{
-          padding: '10px 20px', background: '#1a56db', color: '#fff',
-          border: 'none', borderRadius: '6px', fontWeight: '600'
-        }}>+ New Listing</button>
+        <button onClick={() => navigate('/agent/listings/create')} className="btn btn-primary">
+          + New Listing
+        </button>
       </div>
 
       {listings.length === 0 ? (
-        <p style={{ color: '#6b7280' }}>No listings yet.</p>
+        <EmptyState title="No listings yet.">
+          Create your first listing to get started.
+        </EmptyState>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div className="stack">
           {listings.map(l => (
-            <div key={l.listing_id} style={{
-              background: '#fff', border: '1px solid #e5e7eb',
-              borderRadius: '8px', padding: '20px',
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-            }}>
+            <div key={l.listing_id} className="card card-row">
               <div>
                 <h3 style={{ marginBottom: '4px' }}>{l.title}</h3>
-                <p style={{ color: '#6b7280', fontSize: '14px' }}>{l.city} — {l.property_type}</p>
-                <p style={{ color: '#1a56db', fontWeight: '700', marginTop: '4px' }}>
-                  ${Number(l.price).toLocaleString()}
-                </p>
+                <p style={{ color: 'var(--text-light)', fontSize: '14px' }}>{l.city} — {l.property_type}</p>
+                <p className="price" style={{ marginTop: '4px' }}>{formatPrice(l.price)}</p>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span style={{
-                  padding: '4px 12px', borderRadius: '20px', fontSize: '13px', fontWeight: '600',
-                  background: l.status === 'available' ? '#d1fae5' : '#fef3c7',
-                  color: l.status === 'available' ? '#065f46' : '#92400e'
-                }}>{l.status}</span>
-                <button onClick={() => navigate(`/agent/listings/${l.listing_id}`)} style={{
-                  padding: '8px 16px', background: '#eff6ff', color: '#1a56db',
-                  border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '600'
-                }}>View</button>
-                <button onClick={() => navigate(`/agent/listings/edit/${l.listing_id}`)} style={{
-                  padding: '8px 16px', background: '#f3f4f6', color: '#374151',
-                  border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '600'
-                }}>Edit</button>
-                <button onClick={() => handleDelete(l.listing_id)} style={{
-                  padding: '8px 16px', background: '#fee2e2', color: '#ef4444',
-                  border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: '600'
-                }}>Delete</button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                <Badge status={l.status} />
+                <button onClick={() => navigate(`/agent/listings/${l.listing_id}`)} className="btn btn-soft btn-sm">
+                  View
+                </button>
+                <button onClick={() => navigate(`/agent/listings/edit/${l.listing_id}`)} className="btn btn-secondary btn-sm">
+                  Edit
+                </button>
+                <button onClick={() => handleDelete(l.listing_id)} className="btn btn-danger-soft btn-sm">
+                  Delete
+                </button>
               </div>
             </div>
           ))}

@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import api from '../../services/api'
+import { formatPrice } from '../../utils/helpers'
+import Loading from '../../components/ui/Loading'
+import Badge from '../../components/ui/Badge'
+import StatCard from '../../components/ui/StatCard'
 
 const Dashboard = () => {
   const [listings, setListings] = useState([])
@@ -19,77 +23,55 @@ const Dashboard = () => {
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) return <p style={{ padding: '40px' }}>Loading...</p>
+  if (loading) return <Loading />
 
   return (
-    <div style={{ padding: '32px', maxWidth: '1100px', margin: '0 auto' }}>
+    <div className="page">
       <h2 style={{ marginBottom: '24px' }}>Agent Dashboard</h2>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '32px' }}>
-        {[
-          { label: 'Total Listings', value: listings.length },
-          { label: 'Pending Appointments', value: appointments.filter(a => a.status === 'pending').length },
-          { label: 'Active Listings', value: listings.filter(l => l.status === 'available').length },
-        ].map(stat => (
-          <div key={stat.label} style={{
-            background: '#fff', border: '1px solid #e5e7eb',
-            borderRadius: '8px', padding: '24px', textAlign: 'center'
-          }}>
-            <p style={{ fontSize: '36px', fontWeight: '700', color: '#1a56db' }}>{stat.value}</p>
-            <p style={{ color: '#6b7280', fontSize: '14px', marginTop: '4px' }}>{stat.label}</p>
-          </div>
-        ))}
+      <div className="grid-stats" style={{ marginBottom: '32px' }}>
+        <StatCard label="Total Listings" value={listings.length} />
+        <StatCard label="Pending Appointments" value={appointments.filter(a => a.status === 'pending').length} />
+        <StatCard label="Active Listings" value={listings.filter(l => l.status === 'available').length} />
       </div>
 
       {/* Recent Listings */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-        <h3>My Listings <span style={{ fontSize: '13px', color: '#1a56db', fontWeight: '400', cursor: 'pointer' }} onClick={() => navigate('/agent/listings')}>View All →</span></h3>
-        <button onClick={() => navigate('/agent/listings/create')} style={{
-          padding: '8px 16px', background: '#1a56db', color: '#fff',
-          border: 'none', borderRadius: '6px', fontWeight: '600', fontSize: '14px'
-        }}>+ New Listing</button>
+      <div className="page-header" style={{ marginBottom: '16px' }}>
+        <h3>
+          My Listings{' '}
+          <Link to="/agent/listings" className="btn-link" style={{ fontSize: '13px', fontWeight: '400' }}>
+            View All →
+          </Link>
+        </h3>
+        <button onClick={() => navigate('/agent/listings/create')} className="btn btn-primary btn-sm">
+          + New Listing
+        </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '32px' }}>
+      <div className="grid-cards" style={{ gap: '16px', marginBottom: '32px' }}>
         {listings.slice(0, 3).map(l => (
-          <div key={l.listing_id} style={{
-            background: '#fff', border: '1px solid #e5e7eb',
-            borderRadius: '8px', padding: '16px'
-          }}>
+          <div key={l.listing_id} className="card card-hover">
             <h4 style={{ marginBottom: '6px' }}>{l.title}</h4>
-            <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '4px' }}>{l.city}</p>
-            <p style={{ color: '#1a56db', fontWeight: '700', marginBottom: '12px' }}>
-              ${Number(l.price).toLocaleString()}
-            </p>
-            <span style={{
-              display: 'inline-block', padding: '3px 10px', borderRadius: '20px',
-              fontSize: '12px', fontWeight: '600',
-              background: l.status === 'available' ? '#d1fae5' : '#fef3c7',
-              color: l.status === 'available' ? '#065f46' : '#92400e'
-            }}>{l.status}</span>
+            <p style={{ color: 'var(--text-light)', fontSize: '14px', marginBottom: '4px' }}>{l.city}</p>
+            <p className="price" style={{ marginBottom: '12px' }}>{formatPrice(l.price)}</p>
+            <Badge status={l.status} />
           </div>
         ))}
       </div>
 
       {/* Recent Appointments */}
       <h3 style={{ marginBottom: '16px' }}>Recent Appointments</h3>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div className="stack">
         {appointments.slice(0, 3).map(a => (
-          <div key={a.appointment_id} style={{
-            background: '#fff', border: '1px solid #e5e7eb',
-            borderRadius: '8px', padding: '16px',
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-          }}>
+          <div key={a.appointment_id} className="card card-row" style={{ padding: '16px' }}>
             <div>
               <p style={{ fontWeight: '600' }}>{a.Buyer?.full_name}</p>
-              <p style={{ fontSize: '14px', color: '#6b7280' }}>{a.Listing?.title} — {a.appointment_date}</p>
+              <p style={{ fontSize: '14px', color: 'var(--text-light)' }}>
+                {a.Listing?.title} — {a.appointment_date}
+              </p>
             </div>
-            <span style={{
-              padding: '4px 12px', borderRadius: '20px', fontSize: '13px', fontWeight: '600',
-              background: a.status === 'confirmed' ? '#d1fae5' : '#fef3c7',
-              color: a.status === 'confirmed' ? '#065f46' : '#92400e'
-            }}>{a.status}</span>
+            <Badge status={a.status} />
           </div>
         ))}
       </div>

@@ -7,17 +7,24 @@ export const formatDate = (date) =>
 export const formatDateTime = (date) =>
   new Date(date).toLocaleString()
 
-export const statusColor = (status) => {
+// Maps a domain status to a badge variant class (see .badge-* in index.css)
+export const statusVariant = (status) => {
   const map = {
-    available: { bg: '#d1fae5', text: '#065f46' },
-    confirmed:  { bg: '#d1fae5', text: '#065f46' },
-    active:     { bg: '#d1fae5', text: '#065f46' },
-    resolved:   { bg: '#d1fae5', text: '#065f46' },
-    pending:    { bg: '#fef3c7', text: '#92400e' },
-    reviewed:   { bg: '#dbeafe', text: '#1e40af' },
-    cancelled:  { bg: '#fee2e2', text: '#991b1b' },
-    suspended:  { bg: '#fee2e2', text: '#991b1b' },
-    sold:       { bg: '#f3f4f6', text: '#374151' },
+    available: 'success',
+    confirmed: 'success',
+    active: 'success',
+    resolved: 'success',
+    verified: 'success',
+    pending: 'warning',
+    unverified: 'warning',
+    reviewed: 'info',
+    cancelled: 'danger',
+    suspended: 'danger',
+    sold: 'neutral',
+    archived: 'neutral',
   }
-  return map[status] || { bg: '#f3f4f6', text: '#374151' }
+  return map[String(status).toLowerCase()] || 'neutral'
 }
+
+export const initialsOf = (name) =>
+  (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import authService from '../../services/authService'
+import Alert from '../../components/ui/Alert'
 
 const Login = () => {
   const [role, setRole] = useState('buyer')
@@ -29,65 +30,48 @@ const Login = () => {
     }
   }
 
-  const inputStyle = {
-    width: '100%', padding: '12px', border: '1px solid #e5e7eb',
-    borderRadius: '8px', fontSize: '15px', marginBottom: '16px',
-    background: '#f9fafb', outline: 'none'
-  }
-
   return (
-    <div style={{
-      minHeight: '100vh', display: 'flex', alignItems: 'center',
-      justifyContent: 'center', background: '#f3f4f6'
-    }}>
-      <div style={{
-        background: '#fff', borderRadius: '12px', padding: '40px',
-        width: '100%', maxWidth: '420px',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.08)'
-      }}>
-        <h2 style={{ fontSize: '28px', fontWeight: '700', marginBottom: '8px', textAlign: 'center' }}>
-          Welcome Back
-        </h2>
-        <p style={{ color: '#6b7280', textAlign: 'center', marginBottom: '32px' }}>
-          Sign in to your account
-        </p>
+    <div className="auth-page">
+      <div className="auth-card">
+        <h2 className="auth-title">Welcome Back</h2>
+        <p className="auth-subtitle">Sign in to your account</p>
 
-        {error && (
-          <div style={{
-            background: '#fee2e2', color: '#991b1b', padding: '12px',
-            borderRadius: '8px', marginBottom: '16px', fontSize: '14px'
-          }}>{error}</div>
-        )}
+        {error && <Alert type="error">{error}</Alert>}
 
         <form onSubmit={handleSubmit}>
-          <label style={{ display: 'block', fontSize: '13px', color: '#6b7280', marginBottom: '6px' }}>I am a</label>
-          <select value={role} onChange={e => setRole(e.target.value)} style={inputStyle}>
-            <option value="buyer">Buyer</option>
-            <option value="agent">Agent</option>
-            <option value="admin">Admin</option>
-          </select>
-
-          <label style={{ display: 'block', fontSize: '13px', color: '#6b7280', marginBottom: '6px' }}>Email Address</label>
-          <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-            placeholder="Enter your email" required style={inputStyle} />
-
-          <label style={{ display: 'block', fontSize: '13px', color: '#6b7280', marginBottom: '6px' }}>Password</label>
-          <input type="password" value={password} onChange={e => setPassword(e.target.value)}
-            placeholder="Enter your password" required style={inputStyle} />
-
-          <div style={{ textAlign: 'right', marginBottom: '20px', marginTop: '-8px' }}>
-            <Link to="/forgot-password" style={{ fontSize: '13px', color: '#1a56db' }}>Forgot Password?</Link>
+          <div className="form-group">
+            <label className="label" htmlFor="login-role">I am a</label>
+            <select id="login-role" value={role} onChange={e => setRole(e.target.value)} className="input">
+              <option value="buyer">Buyer</option>
+              <option value="agent">Agent</option>
+              <option value="admin">Admin</option>
+            </select>
           </div>
 
-          <button type="submit" disabled={loading} style={{
-            width: '100%', padding: '13px', background: '#1a56db', color: '#fff',
-            border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '16px', cursor: 'pointer'
-          }}>{loading ? 'Signing in...' : 'Sign In'}</button>
+          <div className="form-group">
+            <label className="label" htmlFor="login-email">Email Address</label>
+            <input id="login-email" type="email" value={email} onChange={e => setEmail(e.target.value)}
+              placeholder="Enter your email" required className="input" />
+          </div>
+
+          <div className="form-group">
+            <label className="label" htmlFor="login-password">Password</label>
+            <input id="login-password" type="password" value={password} onChange={e => setPassword(e.target.value)}
+              placeholder="Enter your password" required className="input" />
+          </div>
+
+          <div style={{ textAlign: 'right', marginBottom: '20px' }}>
+            <Link to="/forgot-password" className="btn-link" style={{ fontSize: '13px' }}>Forgot Password?</Link>
+          </div>
+
+          <button type="submit" disabled={loading} className="btn btn-primary btn-lg btn-block">
+            {loading ? 'Signing in...' : 'Sign In'}
+          </button>
         </form>
 
-        <p style={{ textAlign: 'center', marginTop: '24px', color: '#6b7280', fontSize: '14px' }}>
+        <p className="auth-footer">
           Don't have an account?{' '}
-          <Link to="/register" style={{ color: '#1a56db', fontWeight: '600' }}>Register</Link>
+          <Link to="/register" className="btn-link">Register</Link>
         </p>
       </div>
     </div>

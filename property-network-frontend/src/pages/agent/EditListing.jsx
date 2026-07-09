@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import api from '../../services/api'
+import { PROPERTY_TYPES, LISTING_STATUSES } from '../../utils/constants'
+import Loading from '../../components/ui/Loading'
+import Alert from '../../components/ui/Alert'
 
 const EditListing = () => {
   const { id } = useParams()
@@ -78,70 +81,72 @@ const EditListing = () => {
     }
   }
 
-  const inputStyle = {
-    width: '100%', padding: '10px 12px',
-    border: '1px solid #e5e7eb', borderRadius: '6px',
-    fontSize: '15px', marginBottom: '16px'
-  }
-
-  if (loading) return <p style={{ padding: '40px' }}>Loading...</p>
+  if (loading) return <Loading />
 
   return (
-    <div style={{ padding: '32px', maxWidth: '700px', margin: '0 auto' }}>
+    <div className="page page-sm">
       <h2 style={{ marginBottom: '24px' }}>Edit Listing</h2>
-      {error && <p style={{ color: '#ef4444', marginBottom: '16px' }}>{error}</p>}
+      {error && <Alert type="error">{error}</Alert>}
 
       {/* Listing details form */}
-      <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '24px', marginBottom: '24px' }}>
+      <div className="card" style={{ padding: '24px', marginBottom: '24px' }}>
         <form onSubmit={handleSubmit}>
-          <label style={{ fontSize: '13px', color: '#6b7280' }}>Title</label>
-          <input name="title" value={formData.title} onChange={handleChange} required style={inputStyle} />
+          <div className="form-group">
+            <label className="label" htmlFor="edit-title">Title</label>
+            <input id="edit-title" name="title" value={formData.title} onChange={handleChange} required className="input" />
+          </div>
 
-          <label style={{ fontSize: '13px', color: '#6b7280' }}>Description</label>
-          <textarea name="description" value={formData.description} onChange={handleChange}
-            rows={3} style={{ ...inputStyle, resize: 'vertical' }} />
+          <div className="form-group">
+            <label className="label" htmlFor="edit-description">Description</label>
+            <textarea id="edit-description" name="description" value={formData.description}
+              onChange={handleChange} rows={3} className="input" />
+          </div>
 
-          <label style={{ fontSize: '13px', color: '#6b7280' }}>Price (USD)</label>
-          <input name="price" type="number" value={formData.price} onChange={handleChange} required style={inputStyle} />
+          <div className="form-group">
+            <label className="label" htmlFor="edit-price">Price (USD)</label>
+            <input id="edit-price" name="price" type="number" value={formData.price}
+              onChange={handleChange} required className="input" />
+          </div>
 
-          <label style={{ fontSize: '13px', color: '#6b7280' }}>City</label>
-          <input name="city" value={formData.city} onChange={handleChange} required style={inputStyle} />
+          <div className="form-group">
+            <label className="label" htmlFor="edit-city">City</label>
+            <input id="edit-city" name="city" value={formData.city} onChange={handleChange} required className="input" />
+          </div>
 
-          <label style={{ fontSize: '13px', color: '#6b7280' }}>Address</label>
-          <input name="address" value={formData.address} onChange={handleChange} style={inputStyle} />
+          <div className="form-group">
+            <label className="label" htmlFor="edit-address">Address</label>
+            <input id="edit-address" name="address" value={formData.address} onChange={handleChange} className="input" />
+          </div>
 
-          <label style={{ fontSize: '13px', color: '#6b7280' }}>Property Type</label>
-          <select name="property_type" value={formData.property_type} onChange={handleChange} style={inputStyle}>
-            <option value="condo">Condo</option>
-            <option value="house">House</option>
-            <option value="villa">Villa</option>
-            <option value="apartment">Apartment</option>
-            <option value="flat">Flat</option>
-          </select>
+          <div className="form-group">
+            <label className="label" htmlFor="edit-type">Property Type</label>
+            <select id="edit-type" name="property_type" value={formData.property_type} onChange={handleChange} className="input">
+              {PROPERTY_TYPES.map(t => (
+                <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
+              ))}
+            </select>
+          </div>
 
-          <label style={{ fontSize: '13px', color: '#6b7280' }}>Status</label>
-          <select name="status" value={formData.status} onChange={handleChange} style={inputStyle}>
-            <option value="available">Available</option>
-            <option value="pending">Pending</option>
-            <option value="sold">Sold</option>
-            <option value="archived">Archived</option>
-          </select>
+          <div className="form-group">
+            <label className="label" htmlFor="edit-status">Status</label>
+            <select id="edit-status" name="status" value={formData.status} onChange={handleChange} className="input">
+              {LISTING_STATUSES.map(s => (
+                <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+              ))}
+            </select>
+          </div>
 
           <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-            <button type="submit" style={{
-              flex: 1, padding: '12px', background: '#1a56db', color: '#fff',
-              border: 'none', borderRadius: '6px', fontWeight: '600', fontSize: '15px'
-            }}>Save Changes</button>
-            <button type="button" onClick={() => navigate('/agent/listings')} style={{
-              flex: 1, padding: '12px', background: '#f3f4f6', color: '#374151',
-              border: 'none', borderRadius: '6px', fontWeight: '600', fontSize: '15px'
-            }}>Cancel</button>
+            <button type="submit" className="btn btn-primary btn-lg" style={{ flex: 1 }}>Save Changes</button>
+            <button type="button" onClick={() => navigate('/agent/listings')} className="btn btn-secondary btn-lg" style={{ flex: 1 }}>
+              Cancel
+            </button>
           </div>
         </form>
       </div>
 
       {/* Photo upload section */}
-      <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '24px' }}>
+      <div className="card" style={{ padding: '24px' }}>
         <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px' }}>Listing Photos</h3>
 
         {/* Existing photos */}
@@ -152,21 +157,24 @@ const EditListing = () => {
                 key={photo.photo_id || i}
                 src={photo.photo_path}
                 alt={`Photo ${i + 1}`}
-                style={{ width: '150px', height: '100px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #e5e7eb' }}
+                style={{
+                  width: '150px', height: '100px', objectFit: 'cover',
+                  borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)'
+                }}
               />
             ))}
           </div>
         ) : (
-          <p style={{ color: '#9ca3af', fontSize: '14px', marginBottom: '20px' }}>No photos yet.</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '20px' }}>No photos yet.</p>
         )}
 
         {/* Preview of selected file */}
         {preview && (
           <div style={{ marginBottom: '16px' }}>
-            <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '8px' }}>Preview:</p>
+            <p className="label" style={{ marginBottom: '8px' }}>Preview:</p>
             <img src={preview} alt="Preview" style={{
               width: '200px', height: '140px', objectFit: 'cover',
-              borderRadius: '6px', border: '2px solid #1a56db'
+              borderRadius: 'var(--radius-sm)', border: '2px solid var(--primary)'
             }} />
           </div>
         )}
@@ -177,17 +185,10 @@ const EditListing = () => {
             type="file"
             accept="image/*"
             onChange={handleFileChange}
+            aria-label="Choose a photo to upload"
             style={{ fontSize: '14px' }}
           />
-          <button
-            onClick={handleUploadPhoto}
-            disabled={!selectedFile || uploading}
-            style={{
-              padding: '10px 20px', background: selectedFile ? '#1a56db' : '#9ca3af',
-              color: '#fff', border: 'none', borderRadius: '6px',
-              fontWeight: '600', fontSize: '14px', cursor: selectedFile ? 'pointer' : 'not-allowed'
-            }}
-          >
+          <button onClick={handleUploadPhoto} disabled={!selectedFile || uploading} className="btn btn-primary">
             {uploading ? 'Uploading...' : 'Upload Photo'}
           </button>
         </div>
@@ -195,7 +196,7 @@ const EditListing = () => {
         {uploadMsg && (
           <p style={{
             marginTop: '12px', fontSize: '14px',
-            color: uploadMsg.includes('success') ? '#065f46' : '#991b1b'
+            color: uploadMsg.includes('success') ? 'var(--success-text)' : 'var(--danger-text)'
           }}>{uploadMsg}</p>
         )}
       </div>

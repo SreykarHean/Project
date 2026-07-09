@@ -1,9 +1,13 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCamera, faCircleCheck, faClock } from '@fortawesome/free-solid-svg-icons'
+import { faCamera } from '@fortawesome/free-solid-svg-icons'
 
 import { useState, useEffect, useRef } from 'react'
 import api from '../../services/api'
 import { formatDate } from '../../utils/helpers'
+import Loading from '../../components/ui/Loading'
+import Alert from '../../components/ui/Alert'
+import Badge from '../../components/ui/Badge'
+import Avatar from '../../components/ui/Avatar'
 
 const Profile = () => {
   const [profile, setProfile] = useState(null)
@@ -89,64 +93,28 @@ const Profile = () => {
     }
   }
 
-  if (loading) return <p style={{ padding: '40px' }}>Loading...</p>
-
-  const initials = (profile?.full_name || '?')
-    .split(' ')
-    .map(w => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase()
-
-  const fieldLabel = { color: '#9ca3af', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '4px' }
-  const fieldValue = { fontWeight: '600', fontSize: '15px', color: '#111827' }
+  if (loading) return <Loading />
 
   return (
-    <div style={{ padding: '32px 40px', maxWidth: '1200px', margin: '0 auto' }}>
+    <div className="page page-lg">
       <h2 style={{ marginBottom: '24px' }}>My Profile</h2>
 
-      {message && (
-        <div style={{
-          background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#065f46',
-          padding: '10px 16px', borderRadius: '8px', marginBottom: '16px', fontSize: '14px'
-        }}>{message}</div>
-      )}
-      {error && (
-        <div style={{
-          background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b',
-          padding: '10px 16px', borderRadius: '8px', marginBottom: '16px', fontSize: '14px'
-        }}>{error}</div>
-      )}
+      {message && <Alert type="success">{message}</Alert>}
+      {error && <Alert type="error">{error}</Alert>}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '24px', alignItems: 'start' }}>
+      <div className="profile-grid">
 
         {/* Left: avatar card */}
-        <div style={{
-          background: '#fff', border: '1px solid #e5e7eb', borderRadius: '12px',
-          overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
-        }}>
-          <div style={{
-            background: 'linear-gradient(135deg, #1a56db 0%, #1e40af 100%)',
-            padding: '40px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px'
-          }}>
+        <div className="card card-flush">
+          <div className="profile-hero">
             <div style={{ position: 'relative' }}>
-              <div style={{
-                width: '120px', height: '120px', borderRadius: '50%',
-                border: '4px solid #fff', overflow: 'hidden',
-                background: '#eff6ff', display: 'flex', alignItems: 'center',
-                justifyContent: 'center', flexShrink: 0,
-                boxShadow: '0 2px 10px rgba(0,0,0,0.18)'
-              }}>
-                {profile?.profile_photo ? (
-                  <img src={profile.profile_photo} alt="Profile"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  <span style={{ fontSize: '38px', fontWeight: '700', color: '#1a56db' }}>{initials}</span>
-                )}
+              <div style={{ position: 'relative', border: '4px solid #fff', borderRadius: '50%', boxShadow: '0 2px 10px rgba(0,0,0,0.18)' }}>
+                <Avatar name={profile?.full_name} src={profile?.profile_photo} className="avatar-xl" />
                 {photoUploading && (
                   <div style={{
                     position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.7)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '600'
+                    borderRadius: '50%', display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', fontSize: '12px', fontWeight: '600'
                   }}>...</div>
                 )}
               </div>
@@ -154,100 +122,87 @@ const Profile = () => {
                 onClick={() => fileInputRef.current?.click()}
                 disabled={photoUploading}
                 title="Change photo"
+                aria-label="Change profile photo"
                 style={{
                   position: 'absolute', bottom: '2px', right: '2px',
                   width: '36px', height: '36px', borderRadius: '50%',
-                  background: '#1a56db', border: '3px solid #fff', color: '#fff',
-                  cursor: 'pointer', fontSize: '16px', display: 'flex',
+                  background: 'var(--primary)', border: '3px solid #fff', color: '#fff',
+                  cursor: 'pointer', fontSize: '15px', display: 'flex',
                   alignItems: 'center', justifyContent: 'center'
                 }}
               ><FontAwesomeIcon icon={faCamera} /></button>
               <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoSelect} style={{ display: 'none' }} />
             </div>
 
-            <div style={{ textAlign: 'center', color: '#fff' }}>
+            <div style={{ textAlign: 'center' }}>
               <p style={{ fontSize: '19px', fontWeight: '700' }}>{profile?.full_name}</p>
-              <p style={{ fontSize: '13.5px', opacity: 0.85, marginTop: '2px' }}>{profile?.email}</p>
+              <p style={{ fontSize: '13px', opacity: 0.85, marginTop: '2px' }}>{profile?.email}</p>
             </div>
 
             {profile?.profile_photo && (
-              <button onClick={handlePhotoDelete} disabled={photoUploading} style={{
-                background: 'rgba(255,255,255,0.15)', border: 'none',
-                color: '#fff', fontSize: '12px', padding: '5px 12px', borderRadius: '20px', cursor: 'pointer'
+              <button onClick={handlePhotoDelete} disabled={photoUploading} className="btn btn-sm btn-pill" style={{
+                background: 'rgba(255,255,255,0.15)', color: '#fff', fontSize: '12px'
               }}>Remove photo</button>
             )}
           </div>
 
           <div style={{ padding: '18px 24px' }}>
-            <p style={{ ...fieldLabel, marginBottom: '6px' }}>Account Status</p>
-            <span style={{
-              display: 'inline-block', padding: '3px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: '600',
-              background: profile?.status === 'active' ? '#d1fae5' : '#fee2e2',
-              color: profile?.status === 'active' ? '#065f46' : '#991b1b'
-            }}>{profile?.status}</span>
+            <p className="field-label" style={{ marginBottom: '6px' }}>Account Status</p>
+            <Badge status={profile?.status} />
 
-            <p style={{ ...fieldLabel, marginTop: '16px', marginBottom: '4px' }}>Member Since</p>
-            <p style={fieldValue}>{profile?.createdAt ? formatDate(profile.createdAt) : '—'}</p>
+            <p className="field-label" style={{ marginTop: '16px' }}>Member Since</p>
+            <p className="field-value">{profile?.createdAt ? formatDate(profile.createdAt) : '—'}</p>
           </div>
         </div>
 
         {/* Right: details card */}
-        <div style={{
-          background: '#fff', border: '1px solid #e5e7eb', borderRadius: '12px',
-          padding: '32px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
-        }}>
+        <div className="card card-pad-lg">
           {!editing ? (
             <>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
+              <div className="card-row" style={{ marginBottom: '28px' }}>
                 <h3>Personal Information</h3>
-                <button onClick={() => setEditing(true)} style={{
-                  padding: '9px 18px', background: '#1a56db', color: '#fff',
-                  border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', fontSize: '14px'
-                }}>Edit Profile</button>
+                <button onClick={() => setEditing(true)} className="btn btn-primary btn-sm">Edit Profile</button>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '28px' }}>
+              <div className="grid-2" style={{ gap: '28px' }}>
                 <div>
-                  <p style={fieldLabel}>Full Name</p>
-                  <p style={fieldValue}>{profile?.full_name}</p>
+                  <p className="field-label">Full Name</p>
+                  <p className="field-value">{profile?.full_name}</p>
                 </div>
                 <div>
-                  <p style={fieldLabel}>Phone</p>
-                  <p style={fieldValue}>{profile?.phone || '—'}</p>
+                  <p className="field-label">Phone</p>
+                  <p className="field-value">{profile?.phone || '—'}</p>
                 </div>
                 <div>
-                  <p style={fieldLabel}>Email</p>
-                  <p style={fieldValue}>{profile?.email}</p>
+                  <p className="field-label">Email</p>
+                  <p className="field-value">{profile?.email}</p>
                 </div>
                 <div>
-                  <p style={fieldLabel}>Buyer ID</p>
-                  <p style={fieldValue}>#{profile?.buyer_id}</p>
+                  <p className="field-label">Buyer ID</p>
+                  <p className="field-value">#{profile?.buyer_id}</p>
                 </div>
               </div>
             </>
           ) : (
             <>
               <h3 style={{ marginBottom: '24px' }}>Edit Personal Information</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px', marginBottom: '28px' }}>
+              <div className="grid-2" style={{ marginBottom: '28px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '13px', color: '#6b7280', marginBottom: '6px' }}>Full Name</label>
-                  <input value={formData.full_name} onChange={e => setFormData({ ...formData, full_name: e.target.value })}
-                    style={{ width: '100%', padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: '6px', fontSize: '15px' }} />
+                  <label className="label" htmlFor="profile-name">Full Name</label>
+                  <input id="profile-name" value={formData.full_name}
+                    onChange={e => setFormData({ ...formData, full_name: e.target.value })} className="input" />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '13px', color: '#6b7280', marginBottom: '6px' }}>Phone</label>
-                  <input value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                    style={{ width: '100%', padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: '6px', fontSize: '15px' }} />
+                  <label className="label" htmlFor="profile-phone">Phone</label>
+                  <input id="profile-phone" value={formData.phone}
+                    onChange={e => setFormData({ ...formData, phone: e.target.value })} className="input" />
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '12px' }}>
-                <button onClick={handleSave} style={{
-                  padding: '10px 22px', background: '#1a56db', color: '#fff',
-                  border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer'
-                }}>Save Changes</button>
-                <button onClick={() => { setEditing(false); setFormData({ full_name: profile.full_name, phone: profile.phone || '' }) }} style={{
-                  padding: '10px 22px', background: '#f3f4f6', color: '#374151',
-                  border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer'
-                }}>Cancel</button>
+                <button onClick={handleSave} className="btn btn-primary">Save Changes</button>
+                <button
+                  onClick={() => { setEditing(false); setFormData({ full_name: profile.full_name, phone: profile.phone || '' }) }}
+                  className="btn btn-secondary"
+                >Cancel</button>
               </div>
             </>
           )}

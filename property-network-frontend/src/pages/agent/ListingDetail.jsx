@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 import { useAuth } from '../../hooks/useAuth'
+import { formatPrice } from '../../utils/helpers'
+import Loading from '../../components/ui/Loading'
+import EmptyState from '../../components/ui/EmptyState'
+import Badge from '../../components/ui/Badge'
 
 const ListingDetail = () => {
   const { id } = useParams()
@@ -87,54 +91,43 @@ const ListingDetail = () => {
     }
   }
 
-  if (loading) return <p style={{ padding: '40px' }}>Loading...</p>
-  if (!listing) return <p style={{ padding: '40px' }}>Listing not found.</p>
+  if (loading) return <Loading />
+  if (!listing) return <EmptyState title="Listing not found." />
 
   return (
-    <div style={{ padding: '32px', maxWidth: '900px', margin: '0 auto' }}>
-      <button onClick={() => navigate('/agent/listings')} style={{
-        background: 'none', border: 'none', color: '#1a56db',
-        fontWeight: '600', fontSize: '14px', marginBottom: '24px', padding: 0
-      }}>← Back to Listings</button>
+    <div className="page page-md">
+      <button onClick={() => navigate('/agent/listings')} className="back-link">← Back to Listings</button>
 
-      <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+      <div className="card" style={{ padding: '24px' }}>
+        <div className="card-row" style={{ alignItems: 'flex-start', marginBottom: '20px' }}>
           <div>
             <h2 style={{ marginBottom: '6px' }}>{listing.title}</h2>
-            <p style={{ color: '#6b7280' }}>{listing.city} — {listing.address}</p>
+            <p style={{ color: 'var(--text-light)' }}>{listing.city} — {listing.address}</p>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <p style={{ fontSize: '24px', fontWeight: '700', color: '#1a56db' }}>
-              ${Number(listing.price).toLocaleString()}
+            <p style={{ fontSize: '24px', fontWeight: '700', color: 'var(--primary)' }}>
+              {formatPrice(listing.price)}
             </p>
-            <span style={{
-              display: 'inline-block', padding: '4px 12px', borderRadius: '20px',
-              fontSize: '13px', fontWeight: '600', marginTop: '6px',
-              background: listing.status === 'available' ? '#d1fae5' : '#fef3c7',
-              color: listing.status === 'available' ? '#065f46' : '#92400e'
-            }}>{listing.status}</span>
+            <Badge status={listing.status} style={{ marginTop: '6px' }} />
           </div>
         </div>
 
-        <p style={{ color: '#374151', marginBottom: '20px', lineHeight: '1.6' }}>{listing.description}</p>
+        <p style={{ color: 'var(--neutral-text)', marginBottom: '20px', lineHeight: '1.6' }}>
+          {listing.description}
+        </p>
 
-        <div style={{ display: 'flex', gap: '16px', marginBottom: '20px' }}>
-          <span style={{
-            padding: '6px 14px', background: '#f3f4f6',
-            borderRadius: '6px', fontSize: '14px', fontWeight: '600'
-          }}>{listing.property_type}</span>
-        </div>
+        <Badge variant="neutral">{listing.property_type}</Badge>
 
         {listing.ListingDetails && listing.ListingDetails.length > 0 && (
-          <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '20px', marginBottom: '20px' }}>
+          <div style={{ borderTop: '1px solid var(--border)', paddingTop: '20px', margin: '20px 0' }}>
             <h4 style={{ marginBottom: '12px' }}>Property Details</h4>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+            <div className="grid-details">
               {listing.ListingDetails.map(d => (
                 <div key={d.detail_id} style={{
-                  background: '#f9fafb', padding: '12px',
-                  borderRadius: '6px', textAlign: 'center'
+                  background: 'var(--bg)', padding: '12px',
+                  borderRadius: 'var(--radius-sm)', textAlign: 'center'
                 }}>
-                  <p style={{ fontSize: '13px', color: '#6b7280' }}>{d.feature_name}</p>
+                  <p style={{ fontSize: '13px', color: 'var(--text-light)' }}>{d.feature_name}</p>
                   <p style={{ fontWeight: '700', fontSize: '16px' }}>{d.feature_value}</p>
                 </div>
               ))}
@@ -143,26 +136,24 @@ const ListingDetail = () => {
         )}
 
         <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
-          <button onClick={() => navigate(`/agent/listings/edit/${id}`)} style={{
-            padding: '10px 24px', background: '#1a56db', color: '#fff',
-            border: 'none', borderRadius: '6px', fontWeight: '600'
-          }}>Edit Listing</button>
+          <button onClick={() => navigate(`/agent/listings/edit/${id}`)} className="btn btn-primary">
+            Edit Listing
+          </button>
         </div>
       </div>
 
       {/* Q&A */}
-      <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '10px', padding: '24px', marginTop: '24px' }}>
+      <div className="card" style={{ padding: '24px', marginTop: '24px' }}>
         <h3 style={{ marginBottom: '16px' }}>Community Q&A</h3>
 
         {qaLoading ? (
-          <p style={{ color: '#9ca3af' }}>Loading questions...</p>
+          <p style={{ color: 'var(--text-muted)' }}>Loading questions...</p>
         ) : questions.length === 0 ? (
-          <p style={{ color: '#6b7280' }}>No questions yet for this listing.</p>
+          <p style={{ color: 'var(--text-light)' }}>No questions yet for this listing.</p>
         ) : (
           questions.map(q => (
-            <div key={q.question_id} style={{
-              border: '1px solid #e5e7eb', borderRadius: '8px',
-              padding: '16px', marginBottom: '12px'
+            <div key={q.question_id} className="card" style={{
+              padding: '16px', marginBottom: '12px', borderRadius: 'var(--radius)'
             }}>
               <p style={{ fontWeight: '600', marginBottom: '4px' }}>
                 {q.is_anonymous ? 'Anonymous' : q.Buyer?.full_name}
@@ -170,20 +161,23 @@ const ListingDetail = () => {
               <p style={{ marginBottom: '10px' }}>{q.body}</p>
 
               {q.QaAnswers && q.QaAnswers.length > 0 && (
-                <div style={{ borderLeft: '3px solid #1a56db', paddingLeft: '16px', marginTop: '12px', marginBottom: '12px' }}>
+                <div className="answer-thread" style={{ marginBottom: '12px' }}>
                   {q.QaAnswers.map(a => (
-                    <div key={a.answer_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                    <div key={a.answer_id} style={{
+                      display: 'flex', justifyContent: 'space-between',
+                      alignItems: 'flex-start', gap: '8px'
+                    }}>
                       <div>
-                        <p style={{ fontSize: '13px', fontWeight: '600', color: '#1a56db' }}>
+                        <p style={{ fontSize: '13px', fontWeight: '600', color: 'var(--primary)' }}>
                           {a.Agent?.full_name} · {a.Agent?.agency_name}
                         </p>
                         <p style={{ fontSize: '14px' }}>{a.body}</p>
                       </div>
                       {a.agent_id === user?.id && (
-                        <button onClick={() => handleDeleteAnswer(a.answer_id)} style={{
-                          background: 'none', border: 'none', color: '#b91c1c',
-                          fontSize: '12.5px', fontWeight: '600', cursor: 'pointer', padding: 0, flexShrink: 0
-                        }}>Delete</button>
+                        <button onClick={() => handleDeleteAnswer(a.answer_id)}
+                          className="btn-link" style={{ color: 'var(--danger-dark)', fontSize: '12.5px', flexShrink: 0 }}>
+                          Delete
+                        </button>
                       )}
                     </div>
                   ))}
@@ -195,17 +189,15 @@ const ListingDetail = () => {
                   value={answerDrafts[q.question_id] || ''}
                   onChange={e => handleAnswerChange(q.question_id, e.target.value)}
                   placeholder="Write a reply..."
-                  style={{
-                    flex: 1, padding: '9px 12px', border: '1px solid #e5e7eb',
-                    borderRadius: '6px', fontSize: '14px', outline: 'none'
-                  }}
+                  aria-label="Reply to question"
+                  className="input"
+                  style={{ flex: 1 }}
                 />
-                <button type="submit" disabled={!answerDrafts[q.question_id]?.trim() || answering[q.question_id]} style={{
-                  padding: '9px 18px',
-                  background: answerDrafts[q.question_id]?.trim() ? '#1a56db' : '#c7d2fe',
-                  color: '#fff', border: 'none', borderRadius: '6px',
-                  fontWeight: '600', cursor: answerDrafts[q.question_id]?.trim() ? 'pointer' : 'default'
-                }}>{answering[q.question_id] ? 'Posting...' : 'Reply'}</button>
+                <button type="submit"
+                  disabled={!answerDrafts[q.question_id]?.trim() || answering[q.question_id]}
+                  className="btn btn-primary">
+                  {answering[q.question_id] ? 'Posting...' : 'Reply'}
+                </button>
               </form>
             </div>
           ))
@@ -214,33 +206,31 @@ const ListingDetail = () => {
 
       {/* Reports on this listing */}
       {reports.length > 0 && (
-        <div style={{ background: '#fff', border: '1px solid #fca5a5', borderRadius: '10px', padding: '24px', marginTop: '24px' }}>
-          <h3 style={{ marginBottom: '4px', color: '#991b1b' }}>Reports on this listing</h3>
-          <p style={{ fontSize: '13px', color: '#6b7280', marginBottom: '16px' }}>
+        <div className="card" style={{ padding: '24px', marginTop: '24px', borderColor: 'var(--danger-border)' }}>
+          <h3 style={{ marginBottom: '4px', color: 'var(--danger-text)' }}>Reports on this listing</h3>
+          <p style={{ fontSize: '13px', color: 'var(--text-light)', marginBottom: '16px' }}>
             Buyer identities are withheld. You can respond below to give your side before admin reviews it.
           </p>
 
           {reportsLoading ? (
-            <p style={{ color: '#9ca3af' }}>Loading reports...</p>
+            <p style={{ color: 'var(--text-muted)' }}>Loading reports...</p>
           ) : (
             reports.map(r => (
               <div key={r.report_id} style={{
-                border: '1px solid #fecaca', borderRadius: '8px',
+                border: '1px solid #fecaca', borderRadius: 'var(--radius)',
                 padding: '16px', marginBottom: '12px', background: '#fef2f2'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <p style={{ fontWeight: '600' }}>{r.report_type}</p>
-                  <span style={{
-                    padding: '3px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: '600',
-                    background: r.status === 'resolved' ? '#d1fae5' : r.status === 'reviewed' ? '#dbeafe' : '#fef3c7',
-                    color: r.status === 'resolved' ? '#065f46' : r.status === 'reviewed' ? '#1e40af' : '#92400e'
-                  }}>{r.status}</span>
+                  <Badge status={r.status} />
                 </div>
-                <p style={{ fontSize: '14px', color: '#374151', marginBottom: '12px' }}>{r.reason}</p>
+                <p style={{ fontSize: '14px', color: 'var(--neutral-text)', marginBottom: '12px' }}>{r.reason}</p>
 
                 {r.agent_response ? (
-                  <div style={{ borderLeft: '3px solid #1a56db', paddingLeft: '12px' }}>
-                    <p style={{ fontSize: '12px', fontWeight: '600', color: '#1a56db', marginBottom: '2px' }}>Your response</p>
+                  <div className="answer-thread" style={{ marginTop: 0, paddingLeft: '12px' }}>
+                    <p style={{ fontSize: '12px', fontWeight: '600', color: 'var(--primary)', marginBottom: '2px' }}>
+                      Your response
+                    </p>
                     <p style={{ fontSize: '14px' }}>{r.agent_response}</p>
                   </div>
                 ) : (
@@ -249,17 +239,15 @@ const ListingDetail = () => {
                       value={responseDrafts[r.report_id] || ''}
                       onChange={e => handleResponseChange(r.report_id, e.target.value)}
                       placeholder="Explain your side..."
-                      style={{
-                        flex: 1, padding: '9px 12px', border: '1px solid #e5e7eb',
-                        borderRadius: '6px', fontSize: '14px', outline: 'none'
-                      }}
+                      aria-label="Respond to report"
+                      className="input"
+                      style={{ flex: 1 }}
                     />
-                    <button type="submit" disabled={!responseDrafts[r.report_id]?.trim() || responding[r.report_id]} style={{
-                      padding: '9px 18px',
-                      background: responseDrafts[r.report_id]?.trim() ? '#1a56db' : '#c7d2fe',
-                      color: '#fff', border: 'none', borderRadius: '6px',
-                      fontWeight: '600', cursor: responseDrafts[r.report_id]?.trim() ? 'pointer' : 'default'
-                    }}>{responding[r.report_id] ? 'Submitting...' : 'Respond'}</button>
+                    <button type="submit"
+                      disabled={!responseDrafts[r.report_id]?.trim() || responding[r.report_id]}
+                      className="btn btn-primary">
+                      {responding[r.report_id] ? 'Submitting...' : 'Respond'}
+                    </button>
                   </form>
                 )}
               </div>

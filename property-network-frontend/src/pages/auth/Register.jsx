@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import authService from '../../services/authService'
+import Alert from '../../components/ui/Alert'
 
 const Register = () => {
   const [role, setRole] = useState('buyer')
@@ -31,43 +32,22 @@ const Register = () => {
     }
   }
 
-  const inputStyle = {
-    width: '100%', padding: '12px', border: '1px solid #e5e7eb',
-    borderRadius: '8px', fontSize: '15px', marginBottom: '16px',
-    background: '#f9fafb'
-  }
-
   return (
-    <div style={{
-      minHeight: '100vh', display: 'flex', alignItems: 'center',
-      justifyContent: 'center', background: '#f3f4f6'
-    }}>
-      <div style={{
-        background: '#fff', borderRadius: '12px', padding: '40px',
-        width: '100%', maxWidth: '420px', boxShadow: '0 4px 24px rgba(0,0,0,0.08)'
-      }}>
-        <h2 style={{ fontSize: '28px', fontWeight: '700', marginBottom: '8px', textAlign: 'center' }}>
-          Create Account
-        </h2>
-        <p style={{ color: '#6b7280', textAlign: 'center', marginBottom: '32px' }}>
-          Join Property Network today
-        </p>
+    <div className="auth-page">
+      <div className="auth-card">
+        <h2 className="auth-title">Create Account</h2>
+        <p className="auth-subtitle">Join Property Network today</p>
 
-        {error && (
-          <div style={{
-            background: '#fee2e2', color: '#991b1b', padding: '12px',
-            borderRadius: '8px', marginBottom: '16px', fontSize: '14px'
-          }}>{error}</div>
-        )}
+        {error && <Alert type="error">{error}</Alert>}
 
         <form onSubmit={handleSubmit}>
-          <label style={{ display: 'block', fontSize: '13px', color: '#6b7280', marginBottom: '6px' }}>
-            I am a
-          </label>
-          <select value={role} onChange={(e) => setRole(e.target.value)} style={inputStyle}>
-            <option value="buyer">Buyer</option>
-            <option value="agent">Agent</option>
-          </select>
+          <div className="form-group">
+            <label className="label" htmlFor="register-role">I am a</label>
+            <select id="register-role" value={role} onChange={(e) => setRole(e.target.value)} className="input">
+              <option value="buyer">Buyer</option>
+              <option value="agent">Agent</option>
+            </select>
+          </div>
 
           {[
             { label: 'Full Name', name: 'full_name', type: 'text', placeholder: 'Your full name' },
@@ -75,38 +55,30 @@ const Register = () => {
             { label: 'Phone', name: 'phone', type: 'text', placeholder: 'Your phone number' },
             { label: 'Password', name: 'password', type: 'password', placeholder: 'Create a password' },
           ].map(field => (
-            <div key={field.name}>
-              <label style={{ display: 'block', fontSize: '13px', color: '#6b7280', marginBottom: '6px' }}>
-                {field.label}
-              </label>
-              <input type={field.type} name={field.name} value={formData[field.name]}
-                onChange={handleChange} placeholder={field.placeholder}
-                required={field.name !== 'phone'} style={inputStyle} />
+            <div className="form-group" key={field.name}>
+              <label className="label" htmlFor={`register-${field.name}`}>{field.label}</label>
+              <input id={`register-${field.name}`} type={field.type} name={field.name}
+                value={formData[field.name]} onChange={handleChange}
+                placeholder={field.placeholder} required={field.name !== 'phone'} className="input" />
             </div>
           ))}
 
           {role === 'agent' && (
-            <>
-              <label style={{ display: 'block', fontSize: '13px', color: '#6b7280', marginBottom: '6px' }}>
-                Agency Name
-              </label>
-              <input type="text" name="agency_name" value={formData.agency_name}
-                onChange={handleChange} placeholder="Your agency name" style={inputStyle} />
-            </>
+            <div className="form-group">
+              <label className="label" htmlFor="register-agency_name">Agency Name</label>
+              <input id="register-agency_name" type="text" name="agency_name" value={formData.agency_name}
+                onChange={handleChange} placeholder="Your agency name" className="input" />
+            </div>
           )}
 
-          <button type="submit" disabled={loading} style={{
-            width: '100%', padding: '13px', background: '#1a56db', color: '#fff',
-            border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '16px',
-            marginTop: '8px'
-          }}>
+          <button type="submit" disabled={loading} className="btn btn-primary btn-lg btn-block" style={{ marginTop: '8px' }}>
             {loading ? 'Creating account...' : 'Create Account'}
           </button>
         </form>
 
-        <p style={{ textAlign: 'center', marginTop: '24px', color: '#6b7280', fontSize: '14px' }}>
+        <p className="auth-footer">
           Already have an account?{' '}
-          <Link to="/login" style={{ color: '#1a56db', fontWeight: '600' }}>Sign In</Link>
+          <Link to="/login" className="btn-link">Sign In</Link>
         </p>
       </div>
     </div>

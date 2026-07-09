@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import api from '../../services/api'
+import Loading from '../../components/ui/Loading'
+import Badge from '../../components/ui/Badge'
 
 const ManageUsers = () => {
   const [buyers, setBuyers] = useState([])
@@ -36,55 +38,39 @@ const ManageUsers = () => {
     }
   }
 
-  if (loading) return <p style={{ padding: '40px' }}>Loading...</p>
-
-  const tabStyle = (active) => ({
-    padding: '10px 24px', border: 'none', cursor: 'pointer',
-    fontWeight: '600', fontSize: '14px', borderBottom: active ? '2px solid #1a56db' : '2px solid transparent',
-    background: 'none', color: active ? '#1a56db' : '#6b7280'
-  })
+  if (loading) return <Loading />
 
   return (
-    <div style={{ padding: '32px', maxWidth: '1100px', margin: '0 auto' }}>
+    <div className="page">
       <h2 style={{ marginBottom: '24px' }}>Manage Users</h2>
 
-      <div style={{ borderBottom: '1px solid #e5e7eb', marginBottom: '24px' }}>
-        <button style={tabStyle(tab === 'buyers')} onClick={() => setTab('buyers')}>
+      <div className="tabs">
+        <button className={`tab${tab === 'buyers' ? ' active' : ''}`} onClick={() => setTab('buyers')}>
           Buyers ({buyers.length})
         </button>
-        <button style={tabStyle(tab === 'agents')} onClick={() => setTab('agents')}>
+        <button className={`tab${tab === 'agents' ? ' active' : ''}`} onClick={() => setTab('agents')}>
           Agents ({agents.length})
         </button>
       </div>
 
       {tab === 'buyers' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div className="stack">
           {buyers.map(b => (
-            <div key={b.buyer_id} style={{
-              background: '#fff', border: '1px solid #e5e7eb',
-              borderRadius: '8px', padding: '16px',
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-            }}>
+            <div key={b.buyer_id} className="card card-row" style={{ padding: '16px' }}>
               <div>
                 <p style={{ fontWeight: '600' }}>{b.full_name}</p>
-                <p style={{ fontSize: '14px', color: '#6b7280' }}>{b.email} · {b.phone}</p>
+                <p style={{ fontSize: '14px', color: 'var(--text-light)' }}>{b.email} · {b.phone}</p>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span style={{
-                  padding: '4px 12px', borderRadius: '20px', fontSize: '13px', fontWeight: '600',
-                  background: b.status === 'active' ? '#d1fae5' : '#fee2e2',
-                  color: b.status === 'active' ? '#065f46' : '#991b1b'
-                }}>{b.status}</span>
+                <Badge status={b.status} />
                 {b.status === 'active' ? (
-                  <button onClick={() => handleBuyerStatus(b.buyer_id, 'suspended')} style={{
-                    padding: '7px 14px', background: '#fee2e2', color: '#991b1b',
-                    border: 'none', borderRadius: '6px', fontSize: '13px', fontWeight: '600'
-                  }}>Suspend</button>
+                  <button onClick={() => handleBuyerStatus(b.buyer_id, 'suspended')} className="btn btn-danger-soft btn-sm">
+                    Suspend
+                  </button>
                 ) : (
-                  <button onClick={() => handleBuyerStatus(b.buyer_id, 'active')} style={{
-                    padding: '7px 14px', background: '#d1fae5', color: '#065f46',
-                    border: 'none', borderRadius: '6px', fontSize: '13px', fontWeight: '600'
-                  }}>Activate</button>
+                  <button onClick={() => handleBuyerStatus(b.buyer_id, 'active')} className="btn btn-success-soft btn-sm">
+                    Activate
+                  </button>
                 )}
               </div>
             </div>
@@ -93,28 +79,21 @@ const ManageUsers = () => {
       )}
 
       {tab === 'agents' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div className="stack">
           {agents.map(a => (
-            <div key={a.agent_id} style={{
-              background: '#fff', border: '1px solid #e5e7eb',
-              borderRadius: '8px', padding: '16px',
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-            }}>
+            <div key={a.agent_id} className="card card-row" style={{ padding: '16px' }}>
               <div>
                 <p style={{ fontWeight: '600' }}>{a.full_name}</p>
-                <p style={{ fontSize: '14px', color: '#6b7280' }}>{a.email} · {a.agency_name}</p>
+                <p style={{ fontSize: '14px', color: 'var(--text-light)' }}>{a.email} · {a.agency_name}</p>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span style={{
-                  padding: '4px 12px', borderRadius: '20px', fontSize: '13px', fontWeight: '600',
-                  background: a.is_verified ? '#d1fae5' : '#fef3c7',
-                  color: a.is_verified ? '#065f46' : '#92400e'
-                }}>{a.is_verified ? 'Verified' : 'Unverified'}</span>
+                <Badge variant={a.is_verified ? 'success' : 'warning'}>
+                  {a.is_verified ? 'Verified' : 'Unverified'}
+                </Badge>
                 {!a.is_verified && (
-                  <button onClick={() => handleVerifyAgent(a.agent_id)} style={{
-                    padding: '7px 14px', background: '#dbeafe', color: '#1e40af',
-                    border: 'none', borderRadius: '6px', fontSize: '13px', fontWeight: '600'
-                  }}>Verify</button>
+                  <button onClick={() => handleVerifyAgent(a.agent_id)} className="btn btn-info-soft btn-sm">
+                    Verify
+                  </button>
                 )}
               </div>
             </div>

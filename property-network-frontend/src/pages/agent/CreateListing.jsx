@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
+import { PROPERTY_TYPES } from '../../utils/constants'
+import Alert from '../../components/ui/Alert'
 
 const CreateListing = () => {
   const navigate = useNavigate()
@@ -27,52 +29,55 @@ const CreateListing = () => {
     }
   }
 
-  const inputStyle = {
-    width: '100%', padding: '10px 12px',
-    border: '1px solid #e5e7eb', borderRadius: '6px',
-    fontSize: '15px', marginBottom: '16px'
-  }
-
   return (
-    <div style={{ padding: '32px', maxWidth: '700px', margin: '0 auto' }}>
+    <div className="page page-sm">
       <h2 style={{ marginBottom: '24px' }}>Create New Listing</h2>
-      {error && <p style={{ color: '#ef4444', marginBottom: '16px' }}>{error}</p>}
-      <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '24px' }}>
+      {error && <Alert type="error">{error}</Alert>}
+      <div className="card" style={{ padding: '24px' }}>
         <form onSubmit={handleSubmit}>
-          <label style={{ fontSize: '13px', color: '#6b7280' }}>Title</label>
-          <input name="title" value={formData.title} onChange={handleChange} required style={inputStyle} />
+          <div className="form-group">
+            <label className="label" htmlFor="listing-title">Title</label>
+            <input id="listing-title" name="title" value={formData.title} onChange={handleChange} required className="input" />
+          </div>
 
-          <label style={{ fontSize: '13px', color: '#6b7280' }}>Description</label>
-          <textarea name="description" value={formData.description} onChange={handleChange}
-            rows={3} style={{ ...inputStyle, resize: 'vertical' }} />
+          <div className="form-group">
+            <label className="label" htmlFor="listing-description">Description</label>
+            <textarea id="listing-description" name="description" value={formData.description}
+              onChange={handleChange} rows={3} className="input" />
+          </div>
 
-          <label style={{ fontSize: '13px', color: '#6b7280' }}>Price (USD)</label>
-          <input name="price" type="number" value={formData.price} onChange={handleChange} required style={inputStyle} />
+          <div className="form-group">
+            <label className="label" htmlFor="listing-price">Price (USD)</label>
+            <input id="listing-price" name="price" type="number" value={formData.price}
+              onChange={handleChange} required className="input" />
+          </div>
 
-          <label style={{ fontSize: '13px', color: '#6b7280' }}>City</label>
-          <input name="city" value={formData.city} onChange={handleChange} required style={inputStyle} />
+          <div className="form-group">
+            <label className="label" htmlFor="listing-city">City</label>
+            <input id="listing-city" name="city" value={formData.city} onChange={handleChange} required className="input" />
+          </div>
 
-          <label style={{ fontSize: '13px', color: '#6b7280' }}>Address</label>
-          <input name="address" value={formData.address} onChange={handleChange} style={inputStyle} />
+          <div className="form-group">
+            <label className="label" htmlFor="listing-address">Address</label>
+            <input id="listing-address" name="address" value={formData.address} onChange={handleChange} className="input" />
+          </div>
 
-          <label style={{ fontSize: '13px', color: '#6b7280' }}>Property Type</label>
-          <select name="property_type" value={formData.property_type} onChange={handleChange} style={inputStyle}>
-            <option value="condo">Condo</option>
-            <option value="house">House</option>
-            <option value="villa">Villa</option>
-            <option value="apartment">Apartment</option>
-            <option value="flat">Flat</option>
-          </select>
+          <div className="form-group">
+            <label className="label" htmlFor="listing-type">Property Type</label>
+            <select id="listing-type" name="property_type" value={formData.property_type} onChange={handleChange} className="input">
+              {PROPERTY_TYPES.map(t => (
+                <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
+              ))}
+            </select>
+          </div>
 
           <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-            <button type="submit" disabled={loading} style={{
-              flex: 1, padding: '12px', background: '#1a56db', color: '#fff',
-              border: 'none', borderRadius: '6px', fontWeight: '600', fontSize: '15px'
-            }}>{loading ? 'Creating...' : 'Create Listing'}</button>
-            <button type="button" onClick={() => navigate('/agent/listings')} style={{
-              flex: 1, padding: '12px', background: '#f3f4f6', color: '#374151',
-              border: 'none', borderRadius: '6px', fontWeight: '600', fontSize: '15px'
-            }}>Cancel</button>
+            <button type="submit" disabled={loading} className="btn btn-primary btn-lg" style={{ flex: 1 }}>
+              {loading ? 'Creating...' : 'Create Listing'}
+            </button>
+            <button type="button" onClick={() => navigate('/agent/listings')} className="btn btn-secondary btn-lg" style={{ flex: 1 }}>
+              Cancel
+            </button>
           </div>
         </form>
       </div>

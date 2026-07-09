@@ -1,9 +1,11 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faLocationDot } from '@fortawesome/free-solid-svg-icons'
+import { faLocationDot, faComments } from '@fortawesome/free-solid-svg-icons'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import api from '../../services/api'
+import Alert from '../../components/ui/Alert'
+import Avatar from '../../components/ui/Avatar'
 
 const POLL_MS = 4000
 
@@ -128,192 +130,129 @@ const Messages = () => {
   }
 
   const headerName = thread?.buyer?.full_name || passedBuyer.buyerName || 'Buyer'
-  const initials = headerName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+
+  const renderMessages = () => thread?.messages?.reduce((acc, m, idx) => {
+    const prev = thread.messages[idx - 1]
+    if (!prev || dayLabel(prev.sent_at) !== dayLabel(m.sent_at)) {
+      acc.push(
+        <div key={`day-${m.message_id}`} className="chat-day">
+          <span>{dayLabel(m.sent_at)}</span>
+        </div>
+      )
+    }
+    const isMine = m.sender_type === 'agent'
+    acc.push(
+      <div key={m.message_id} className={`msg-row${isMine ? ' mine' : ''}`}>
+        <div className="msg-group">
+          {m.message_type === 'location' ? (
+            <div className="bubble">
+              <p style={{ fontWeight: '600', fontSize: '13px', marginBottom: '4px' }}>
+                <FontAwesomeIcon icon={faLocationDot} /> {m.location_label || 'Shared Location'}
+              </p>
+              <a
+                href={`https://www.google.com/maps?q=${m.location_lat},${m.location_lng}`}
+                target="_blank" rel="noopener noreferrer"
+              >Open in Google Maps</a>
+            </div>
+          ) : (
+            <div className="bubble">{m.body}</div>
+          )}
+          <p className="msg-time">{timeShort(m.sent_at)}</p>
+        </div>
+      </div>
+    )
+    return acc
+  }, [])
 
   return (
-    <div style={{ padding: '32px', maxWidth: '1000px', margin: '0 auto' }}>
+    <div className="page">
       <h2 style={{ marginBottom: '20px' }}>Messages</h2>
 
-      {error && (
-        <div style={{
-          background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b',
-          padding: '10px 16px', borderRadius: '8px', marginBottom: '16px', fontSize: '14px',
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-        }}>
-          <span>{error}</span>
-          <button onClick={() => setError('')} style={{ background: 'none', border: 'none', color: '#991b1b', cursor: 'pointer', fontWeight: '700' }}>×</button>
-        </div>
-      )}
+      {error && <Alert type="error" onClose={() => setError('')}>{error}</Alert>}
 
-      <div style={{
-        display: 'flex', border: '1px solid #e5e7eb', borderRadius: '12px',
-        overflow: 'hidden', background: '#fff', height: '620px'
-      }}>
+      <div className={`chat${activeBuyerId ? ' has-thread' : ''}`}>
         {/* Conversation list */}
-        <div style={{ width: '280px', borderRight: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-          <div style={{
-            padding: '12px 16px', borderBottom: '1px solid #e5e7eb', flexShrink: 0
-          }}>
-            <span style={{ fontWeight: '700', fontSize: '14px' }}>Conversations</span>
+        <div className="chat-sidebar">
+          <div className="chat-sidebar-header">
+            <span>Conversations</span>
           </div>
 
-          <div style={{ flex: 1, overflowY: 'auto' }}>
+          <div className="chat-list">
             {conversationsLoading ? (
-              <p style={{ padding: '20px', color: '#9ca3af', fontSize: '14px' }}>Loading...</p>
+              <p className="chat-list-note">Loading...</p>
             ) : conversations.length === 0 && !activeBuyerId ? (
-              <p style={{ padding: '20px', color: '#9ca3af', fontSize: '14px' }}>
+              <p className="chat-list-note">
                 No conversations yet. Buyers will show up here once they message you.
               </p>
             ) : (
-              conversations.map(c => {
-                const isActive = c.buyer_id === activeBuyerId
-                const cInitials = (c.buyer_name || 'B').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
-                return (
-                  <div key={c.buyer_id} onClick={() => navigate(`/agent/messages/${c.buyer_id}`)} style={{
-                    padding: '14px 16px', cursor: 'pointer',
-                    background: isActive ? '#eff6ff' : '#fff',
-                    borderLeft: isActive ? '3px solid #1a56db' : '3px solid transparent',
-                    borderBottom: '1px solid #f3f4f6',
-                    display: 'flex', gap: '10px', alignItems: 'flex-start'
-                  }}>
-                    <div style={{
-                      width: '38px', height: '38px', borderRadius: '50%', background: '#dbeafe',
-                      color: '#1e40af', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontWeight: '700', fontSize: '13px', flexShrink: 0
-                    }}>{cInitials}</div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '6px' }}>
-                        <span style={{ fontWeight: c.unread_count ? '700' : '600', fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {c.buyer_name}
-                        </span>
-                        <span style={{ fontSize: '11px', color: '#9ca3af', flexShrink: 0 }}>{timeShort(c.last_message_at)}</span>
-                      </div>
-                      <p style={{
-                        fontSize: '12.5px', color: c.unread_count ? '#111827' : '#9ca3af',
-                        fontWeight: c.unread_count ? '600' : '400',
-                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '2px'
-                      }}>
-                        {c.last_message}
-                      </p>
+              conversations.map(c => (
+                <button
+                  key={c.buyer_id}
+                  onClick={() => navigate(`/agent/messages/${c.buyer_id}`)}
+                  className={`chat-list-item${c.buyer_id === activeBuyerId ? ' active' : ''}${c.unread_count ? ' unread' : ''}`}
+                >
+                  <Avatar name={c.buyer_name} />
+                  <div className="chat-list-body">
+                    <div className="chat-list-top">
+                      <span className="chat-list-name">{c.buyer_name}</span>
+                      <span className="chat-list-time">{timeShort(c.last_message_at)}</span>
                     </div>
-                    {c.unread_count > 0 && (
-                      <span style={{
-                        background: '#1a56db', color: '#fff', fontSize: '11px', fontWeight: '700',
-                        borderRadius: '20px', minWidth: '18px', height: '18px', display: 'flex',
-                        alignItems: 'center', justifyContent: 'center', padding: '0 5px', flexShrink: 0
-                      }}>{c.unread_count}</span>
-                    )}
+                    <p className="chat-list-preview">{c.last_message}</p>
                   </div>
-                )
-              })
+                  {c.unread_count > 0 && <span className="count-pill">{c.unread_count}</span>}
+                </button>
+              ))
             )}
           </div>
         </div>
 
         {/* Thread */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        <div className="chat-thread">
           {!activeBuyerId ? (
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', flexDirection: 'column', gap: '8px' }}>
-              <span style={{ fontSize: '36px' }}></span>
+            <div className="chat-thread-empty">
+              <FontAwesomeIcon icon={faComments} style={{ fontSize: '36px' }} />
               <p>Select a conversation to start chatting</p>
             </div>
           ) : (
             <>
               {/* Header */}
-              <div style={{ padding: '14px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{
-                  width: '36px', height: '36px', borderRadius: '50%', background: '#dbeafe',
-                  color: '#1e40af', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontWeight: '700', fontSize: '13px'
-                }}>{initials}</div>
+              <div className="chat-thread-header">
+                <button onClick={() => navigate('/agent/messages')} className="back-link chat-back"
+                  aria-label="Back to conversations">←</button>
+                <Avatar name={headerName} />
                 <div>
                   <p style={{ fontWeight: '700', fontSize: '15px' }}>{headerName}</p>
                 </div>
               </div>
 
               {/* Messages */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '20px', background: '#f9fafb' }}>
+              <div className="chat-messages">
                 {threadLoading && !thread ? (
-                  <p style={{ color: '#9ca3af', textAlign: 'center' }}>Loading conversation...</p>
+                  <p style={{ color: 'var(--text-muted)', textAlign: 'center' }}>Loading conversation...</p>
                 ) : thread?.messages?.length === 0 ? (
-                  <p style={{ color: '#9ca3af', textAlign: 'center', marginTop: '40px' }}>
+                  <p style={{ color: 'var(--text-muted)', textAlign: 'center', marginTop: '40px' }}>
                     No messages yet. Say hello to {headerName.split(' ')[0]}!
                   </p>
-                ) : (
-                  thread?.messages?.reduce((acc, m, idx) => {
-                    const prev = thread.messages[idx - 1]
-                    const showDay = !prev || dayLabel(prev.sent_at) !== dayLabel(m.sent_at)
-                    if (showDay) {
-                      acc.push(
-                        <div key={`day-${m.message_id}`} style={{ textAlign: 'center', margin: '16px 0 10px' }}>
-                          <span style={{ fontSize: '11px', color: '#9ca3af', background: '#f3f4f6', padding: '3px 10px', borderRadius: '20px' }}>
-                            {dayLabel(m.sent_at)}
-                          </span>
-                        </div>
-                      )
-                    }
-                    const isMine = m.sender_type === 'agent'
-                    acc.push(
-                      <div key={m.message_id} style={{ display: 'flex', justifyContent: isMine ? 'flex-end' : 'flex-start', marginBottom: '8px' }}>
-                        <div style={{ maxWidth: '70%' }}>
-                          {m.message_type === 'location' ? (
-                            <div style={{
-                              background: isMine ? '#1a56db' : '#fff',
-                              color: isMine ? '#fff' : '#111827',
-                              border: isMine ? 'none' : '1px solid #e5e7eb',
-                              borderRadius: '14px', padding: '12px 14px'
-                            }}>
-                              <p style={{ fontWeight: '600', fontSize: '13.5px', marginBottom: '4px' }}><FontAwesomeIcon icon={faLocationDot} /> {m.location_label || 'Shared Location'}</p>
-                              <a
-                                href={`https://www.google.com/maps?q=${m.location_lat},${m.location_lng}`}
-                                target="_blank" rel="noopener noreferrer"
-                                style={{ fontSize: '12.5px', color: isMine ? '#dbeafe' : '#1a56db', textDecoration: 'underline' }}
-                              >Open in Google Maps</a>
-                            </div>
-                          ) : (
-                            <div style={{
-                              background: isMine ? '#1a56db' : '#fff',
-                              color: isMine ? '#fff' : '#111827',
-                              border: isMine ? 'none' : '1px solid #e5e7eb',
-                              borderRadius: '14px', padding: '10px 14px', fontSize: '14.5px', lineHeight: '1.4',
-                              wordBreak: 'break-word'
-                            }}>{m.body}</div>
-                          )}
-                          <p style={{ fontSize: '10.5px', color: '#9ca3af', marginTop: '3px', textAlign: isMine ? 'right' : 'left' }}>
-                            {timeShort(m.sent_at)}
-                          </p>
-                        </div>
-                      </div>
-                    )
-                    return acc
-                  }, [])
-                )}
+                ) : renderMessages()}
                 <div ref={bottomRef} />
               </div>
 
               {/* Composer */}
-              <form onSubmit={handleSendText} style={{
-                borderTop: '1px solid #e5e7eb', padding: '12px 16px',
-                display: 'flex', gap: '8px', alignItems: 'center'
-              }}>
-                <button type="button" onClick={handleShareLocation} disabled={locBusy} title="Share your location" style={{
-                  width: '38px', height: '38px', borderRadius: '50%', border: '1px solid #e5e7eb',
-                  background: '#fff', cursor: locBusy ? 'default' : 'pointer', fontSize: '16px', flexShrink: 0
-                }}>{locBusy ? '…' : <FontAwesomeIcon icon={faLocationDot} />}</button>
+              <form onSubmit={handleSendText} className="chat-composer">
+                <button type="button" onClick={handleShareLocation} disabled={locBusy}
+                  title="Share your location" aria-label="Share your location" className="icon-btn">
+                  {locBusy ? '…' : <FontAwesomeIcon icon={faLocationDot} />}
+                </button>
                 <input
                   value={text}
                   onChange={e => setText(e.target.value)}
                   placeholder="Type a message..."
-                  style={{
-                    flex: 1, padding: '10px 14px', border: '1px solid #e5e7eb',
-                    borderRadius: '20px', fontSize: '14.5px', outline: 'none'
-                  }}
+                  aria-label="Message"
+                  className="input"
                 />
-                <button type="submit" disabled={!text.trim() || sending} style={{
-                  padding: '10px 18px', background: text.trim() ? '#1a56db' : '#c7d2fe', color: '#fff',
-                  border: 'none', borderRadius: '20px', fontWeight: '600', cursor: text.trim() ? 'pointer' : 'default',
-                  flexShrink: 0
-                }}>Send</button>
+                <button type="submit" disabled={!text.trim() || sending} className="btn btn-primary btn-pill">
+                  Send
+                </button>
               </form>
             </>
           )}

@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
+import Loading from '../../components/ui/Loading'
+import EmptyState from '../../components/ui/EmptyState'
+import Badge from '../../components/ui/Badge'
 
 const Appointments = () => {
   const [appointments, setAppointments] = useState([])
@@ -27,56 +30,42 @@ const Appointments = () => {
     }
   }
 
-  const statusColor = (status) => {
-    if (status === 'confirmed') return '#10b981'
-    if (status === 'cancelled') return '#ef4444'
-    return '#f59e0b'
-  }
-
-  if (loading) return <p style={{ padding: '40px' }}>Loading...</p>
+  if (loading) return <Loading />
 
   return (
-    <div style={{ padding: '32px', maxWidth: '900px', margin: '0 auto' }}>
+    <div className="page page-md">
       <h2 style={{ marginBottom: '24px' }}>My Appointments</h2>
       {appointments.length === 0 ? (
-        <p style={{ color: '#6b7280' }}>No appointments yet.</p>
+        <EmptyState title="No appointments yet.">
+          Book a viewing from any listing page.
+        </EmptyState>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div className="stack">
           {appointments.map(a => (
             <div
               key={a.appointment_id}
               onClick={() => navigate(`/buyer/listings/${a.Listing?.listing_id}`)}
-              style={{
-                background: '#fff', border: '1px solid #e5e7eb',
-                borderRadius: '8px', padding: '20px',
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                cursor: 'pointer'
-              }}
+              className="card card-row card-clickable"
             >
               <div>
                 <h3 style={{ marginBottom: '6px' }}>{a.Listing?.title}</h3>
-                <p style={{ color: '#6b7280', fontSize: '14px' }}>{a.Listing?.city} — {a.Listing?.address}</p>
+                <p style={{ color: 'var(--text-light)', fontSize: '14px' }}>
+                  {a.Listing?.city} — {a.Listing?.address}
+                </p>
                 <p style={{ fontSize: '14px', marginTop: '6px' }}>Date: {a.appointment_date}</p>
-                {a.note && <p style={{ fontSize: '14px', color: '#6b7280' }}>Note: {a.note}</p>}
+                {a.note && <p style={{ fontSize: '14px', color: 'var(--text-light)' }}>Note: {a.note}</p>}
                 {a.Listing?.Agent?.email && (
-                  <p style={{ fontSize: '14px', color: '#6b7280', marginTop: '4px' }}>
+                  <p style={{ fontSize: '14px', color: 'var(--text-light)', marginTop: '4px' }}>
                     Agent: {a.Listing.Agent.full_name} · {a.Listing.Agent.email}
                   </p>
                 )}
               </div>
-              <div style={{ textAlign: 'right' }}>
-                <span style={{
-                  display: 'inline-block', padding: '4px 12px', borderRadius: '20px',
-                  fontSize: '13px', fontWeight: '600', color: '#fff',
-                  background: statusColor(a.status), marginBottom: '12px'
-                }}>{a.status}</span>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '12px' }}>
+                <Badge status={a.status} />
                 {a.status === 'pending' && (
-                  <div>
-                    <button onClick={(e) => handleCancel(a.appointment_id, e)} style={{
-                      padding: '8px 16px', background: '#ef4444', color: '#fff',
-                      border: 'none', borderRadius: '6px', fontSize: '14px'
-                    }}>Cancel</button>
-                  </div>
+                  <button onClick={(e) => handleCancel(a.appointment_id, e)} className="btn btn-danger-soft btn-sm">
+                    Cancel
+                  </button>
                 )}
               </div>
             </div>
